@@ -1,48 +1,64 @@
-# Employee_Retention_Prediction_Project
+# Employee Retention Prediction
 
-## Project Overview
-This project focuses on analyzing a human resources dataset to understand the factors influencing employee retention and to build a predictive model to identify employees at risk of leaving the company. Employee turnover can be costly for organizations, and proactively identifying potential departures can enable timely interventions.
+An exploratory data analysis (EDA) and baseline machine-learning project using an HR dataset to examine factors associated with employees leaving a company and to train a logistic-regression classifier.
 
-## Dataset
-The dataset used for this analysis is `HR_comma_sep 1.csv`, which contains various employee attributes and a 'left' column indicating whether an employee has left the company (1) or stayed (0).
+> **Important:** The analysis describes associations in this dataset. It does not establish that any factor causes an employee to leave, and the model should not be used by itself to make employment decisions.
 
-## Methodology
+## Project contents
 
-### 1. Exploratory Data Analysis (EDA)
-The initial phase involved a comprehensive exploratory data analysis to uncover patterns, relationships, and key insights into employee retention. Key steps included:
-- **Data Information and Statistics**: Examined data types, non-null counts (`df.info()`), and descriptive statistics (`df.describe()`).
-- **Missing Values Check**: Confirmed no missing values in the dataset (`df.isnull().sum()`).
-- **Target Variable Distribution**: Analyzed the proportion of employees who left vs. stayed, revealing that approximately 23.81% of employees had left.
-- **Numerical Feature Analysis**: Compared the mean of numerical features (e.g., `satisfaction_level`, `average_montly_hours`, `time_spend_company`, `Work_accident`, `promotion_last_5years`) between employees who stayed and those who left.
-- **Categorical Feature Analysis**: Calculated and visualized the proportion of employees leaving within each `Department` and `salary` category.
+- `Salome_Kungu_HR_Assignment.ipynb` — EDA, visualizations, and logistic-regression training.
+- `HR_comma_sep 1.csv` — input dataset. The target column is `left` (`1` = left, `0` = stayed).
+- `employee retention 1.png` — salary-level retention chart.
+- `employee retention 2.png` — department retention chart.
 
-### Key EDA Findings:
-- **Satisfaction Level**: Employees who left had significantly lower average satisfaction levels.
-- **Work Hours & Time in Company**: Those who left tended to work more hours and had spent more time with the company.
-- **Promotions**: Lack of promotion in the last 5 years was strongly associated with employees leaving.
-- **Work Accident**: Not a direct driver for leaving, as employees who stayed were more likely to have had a work accident.
-- **Salary**: A strong predictor; 'low' salary employees had the highest turnover, while 'high' salary employees had the lowest.
-- **Department**: 'HR' and 'Accounting' departments showed higher turnover rates, while 'Management' and 'RandD' had lower rates.
+## Visualizations
 
-### 2. Data Preprocessing for Modeling
-- **Feature Selection**: Selected relevant features including `satisfaction_level`, `average_montly_hours`, `time_spend_company`, `Work_accident`, `promotion_last_5years`, `Department`, and `salary`.
-- **One-Hot Encoding**: Converted categorical features (`Department`, `salary`) into numerical format using one-hot encoding to make them suitable for the machine learning model.
-- **Data Splitting**: Split the dataset into training (70%) and testing (30%) sets to evaluate the model's performance on unseen data.
+### Employee turnover by salary level
 
-### 3. Model Building
-- **Logistic Regression**: A Logistic Regression model was chosen and initialized for its interpretability and effectiveness in binary classification tasks.
-- **Model Training**: The model was trained using the prepared training data (`X_train`, `y_train`).
+![Employee turnover proportion by salary level](<employee retention 1.png>)
 
-## Outcomes and Next Steps
-- The exploratory data analysis successfully identified several key factors strongly correlated with employee retention. These insights can inform HR strategies to improve employee satisfaction, address workload, review promotion policies, and investigate department-specific issues.
-- A Logistic Regression model has been built and trained to predict employee retention.
+### Employee turnover by department
 
-### Next Steps:
-- **Model Evaluation**: The immediate next step is to measure the accuracy and other relevant performance metrics (e.g., precision, recall, F1-score) of the trained model on the test set to understand its predictive capabilities.
-- **Further Optimization**: Depending on the model's performance, further optimization techniques such as hyperparameter tuning or exploring other machine learning algorithms could be considered.
-- **Feature Engineering**: Creating new features from existing ones might further enhance model performance.
+![Employee turnover proportion by department](<employee retention 2.png>)
 
-## Challenges Encountered (Potential)
-- **Categorical Feature Handling**: Properly converting categorical variables (`Department`, `salary`) into numerical formats without introducing bias or multicollinearity was crucial.
-- **Class Imbalance**: The dataset might exhibit class imbalance (more employees staying than leaving), which could affect model performance and may require techniques like oversampling or undersampling during future model refinement.
-- **Model Interpretation**: Ensuring the model's predictions and feature importances are interpretable for business stakeholders is an ongoing consideration.
+## Analysis overview
+
+The notebook checks dataset structure and missing values, compares feature summaries by the `left` target, calculates turnover proportions for salary and department groups, and trains a logistic-regression model using selected numeric features plus one-hot-encoded `Department` and `salary` features.
+
+### Dataset observations
+
+The notebook reports 14,999 records and no missing values. About 23.8% of records are labeled as employees who left. In the descriptive comparisons, employees who left had lower average satisfaction, more average monthly hours, and lower promotion rates. Turnover proportions also differ across salary and department groups. These are exploratory associations, not causal findings.
+
+## Run the notebook
+
+The notebook was authored for Google Colab and currently reads the CSV from a Google Drive-specific path. To run it:
+
+1. Open `Salome_Kungu_HR_Assignment.ipynb` in Google Colab or Jupyter.
+2. Install the required packages if they are not already available: `pandas`, `numpy`, `matplotlib`, and `scikit-learn`.
+3. Update the CSV-loading cell to use the location of `HR_comma_sep 1.csv`. For a local notebook in the repository directory, for example:
+
+   ```python
+   df = pd.read_csv("HR_comma_sep 1.csv")
+   ```
+
+4. Run the notebook cells in order.
+
+## Potential code and analysis issues
+
+- **Environment-specific file loading:** The notebook mounts Google Drive and reads `/content/drive/MyDrive/HR_comma_sep 1.csv`. This will fail outside the author's Colab/Drive setup unless the path is changed. The Drive mount is unnecessary when using the CSV included in this repository.
+- **No model evaluation is implemented:** The notebook trains the classifier, but does not calculate test-set predictions or report accuracy, precision, recall, F1-score, a confusion matrix, or ROC-AUC. Therefore, its predictive performance is unknown; the README should not imply the model has been validated.
+- **Non-stratified split:** `train_test_split` does not specify `stratify=y`. With an imbalanced target, class proportions can differ between training and test sets. Use a stratified split for a more representative evaluation.
+- **Preprocessing occurs before splitting:** One-hot encoding is applied to the full dataset before the train/test split. This exposes the test set's category vocabulary to preprocessing. Put encoding and the classifier in a scikit-learn `Pipeline`/`ColumnTransformer`, and fit the pipeline only on training data.
+- **Class imbalance and metric choice:** Only about 24% of rows are labeled as having left. Accuracy alone could hide poor detection of employees who left. Report per-class precision/recall, F1, a confusion matrix, and ideally ROC-AUC or PR-AUC; consider class weighting or other imbalance strategies only after checking these metrics.
+- **Causal language is too strong:** Group averages and turnover proportions show associations, not direct impact or causes. Avoid translating these observational results into causal HR recommendations without further analysis and domain review.
+- **Warnings are globally hidden:** `warnings.filterwarnings("ignore")` can mask convergence or deprecation warnings. Remove it or suppress only known, understood warnings, and check model convergence.
+- **Reproducibility and maintainability:** The notebook has unused imports (such as `csv` and `linear_model`), hard-coded paths, and saved outputs that may become stale when cells or data change. Remove unused imports and rerun/clear outputs before publishing changes.
+- **Fairness and privacy:** This is employee data and predictive use in HR can have significant consequences. Review data provenance, privacy permissions, potential proxy variables, group-level error rates, and applicable employment laws before any real-world use. Keep the model as an educational baseline unless it has been properly validated and governed.
+
+## Suggested next steps
+
+1. Make data loading repository-relative and remove the Colab-only Drive mount (or document it as an optional setup).
+2. Build preprocessing and logistic regression in a pipeline, and use a stratified train/test split.
+3. Evaluate on held-out data with appropriate classification metrics and compare against a simple baseline.
+4. Check calibration, error rates across relevant groups, and robustness before considering any practical application.
+5. Record package versions and the exact dataset source to improve reproducibility.
